@@ -11,8 +11,8 @@ class TextFieldModel extends FlutterFlowModel<TextFieldWidget> {
   ///  State fields for stateful widgets in this component.
 
   // State field(s) for Input widget.
-  FocusNode? inputFocusNode;
-  TextEditingController? inputTextController;
+  late FocusNode inputFocusNode;
+  late TextEditingController inputTextController;
   String? Function(BuildContext, String?)? inputTextControllerValidator;
 
   @override
@@ -20,7 +20,7 @@ class TextFieldModel extends FlutterFlowModel<TextFieldWidget> {
 
   @override
   void dispose() {
-    inputFocusNode?.dispose();
-    inputTextController?.dispose();
+    inputFocusNode.dispose();
+    inputTextController.dispose();
   }
 }

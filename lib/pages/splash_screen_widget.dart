@@ -10,8 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
-import 'splash_screen_widget.dart';
-export 'splash_screen_widget.dart';
+import 'splash_screen_model.dart';
+export 'splash_screen_model.dart';
 
 class SplashScreenWidget extends StatefulWidget {
   const SplashScreenWidget({super.key});

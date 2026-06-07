@@ -72,8 +72,8 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     super.initState();
     _model = createModel(context, () => TextFieldModel());
 
-    _model.inputTextController ??= TextEditingController(text: widget!.value);
-    _model.inputFocusNode ??= FocusNode();
+    _model.inputTextController = TextEditingController(text: widget.value);
+    _model.inputFocusNode = FocusNode();
   }
 
   @override
