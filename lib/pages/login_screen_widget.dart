@@ -203,6 +203,7 @@ class _LoginScreenWidgetState extends State<LoginScreenWidget> {
                                 model: _model.loginEmailFieldModel,
                                 updateCallback: () => safeSetState(() {}),
                                 child: TextFieldWidget(
+                                  model: _model.loginEmailFieldModel,
                                   label: 'Email',
                                   labelPresent: true,
                                   helper: '',
@@ -256,6 +257,7 @@ class _LoginScreenWidgetState extends State<LoginScreenWidget> {
                                 model: _model.loginPasswordFieldModel,
                                 updateCallback: () => safeSetState(() {}),
                                 child: TextFieldWidget(
+                                  model: _model.loginPasswordFieldModel,
                                   label: 'Password',
                                   labelPresent: true,
                                   helper: '',
@@ -428,7 +430,7 @@ class _LoginScreenWidgetState extends State<LoginScreenWidget> {
                             highlightColor: Colors.transparent,
                             onTap: () async {
                               context
-                                  .pushNamed(DashboardScreenWidget.routeName);
+                                  .pushNamed(LostItemsFeedWidget.routeName);
                             },
                             child: wrapWithModel(
                               model: _model.buttonModel3,

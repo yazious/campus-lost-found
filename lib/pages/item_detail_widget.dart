@@ -10,6 +10,7 @@ import '/index.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -59,30 +60,43 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-        body: Stack(
-          alignment: AlignmentDirectional(-1, -1),
-          children: [
-            StreamBuilder<ItemsRecord>(
-              stream: ItemsRecord.getDocument(widget!.itemRef!),
-              builder: (context, snapshot) {
-                // Customize what your widget looks like when it's loading.
-                if (!snapshot.hasData) {
-                  return Center(
-                    child: SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          FlutterFlowTheme.of(context).primary,
+        body: widget.itemRef == null
+            ? Center(
+                child: Text(
+                  'Item not found',
+                  style: FlutterFlowTheme.of(context).bodyLarge,
+                ),
+              )
+            : StreamBuilder<ItemsRecord>(
+                stream: ItemsRecord.getDocument(widget.itemRef!),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(
+                      child: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            FlutterFlowTheme.of(context).primary,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }
+                    );
+                  }
 
-                final columnItemsRecord = snapshot.data!;
+                  final columnItemsRecord = snapshot.data!;
+                  final imageUrl =
+                      'https://dimg.dreamflow.cloud/v1/image/${Uri.encodeComponent(columnItemsRecord.title)}';
+                  final statusLabel = columnItemsRecord.status.isNotEmpty
+                      ? columnItemsRecord.status.toUpperCase()
+                      : (columnItemsRecord.type == 'found'
+                          ? 'FOUND'
+                          : 'STILL LOST');
 
-                return SingleChildScrollView(
+                  return Stack(
+                    alignment: AlignmentDirectional(-1, -1),
+                    children: [
+                      SingleChildScrollView(
                   primary: false,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -106,8 +120,7 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                       fadeInDuration: Duration(milliseconds: 0),
                                       fadeOutDuration:
                                           Duration(milliseconds: 0),
-                                      imageUrl:
-                                          'https://dimg.dreamflow.cloud/v1/image/lost%20black%20leather%20wallet%20with%20university%20ID%20card',
+                                      imageUrl: imageUrl,
                                       height: 340,
                                       fit: BoxFit.cover,
                                       alignment: Alignment(0, 0),
@@ -174,7 +187,7 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                                   Icons.history_rounded,
                                                   size: 14,
                                                 ),
-                                                label: 'STILL LOST',
+                                                label: statusLabel,
                                               ),
                                             ),
                                           ),
@@ -245,14 +258,30 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                                         .secondaryText,
                                                 size: 24,
                                               ),
-                                              onPressed: () {
-                                                print('IconButton pressed ...');
+                                              onPressed: () async {
+                                                final shareText =
+                                                    '${columnItemsRecord.title}\n'
+                                                    '${columnItemsRecord.description}\n'
+                                                    'Location: ${columnItemsRecord.location}';
+                                                await Clipboard.setData(
+                                                    ClipboardData(
+                                                        text: shareText));
+                                                if (!context.mounted) return;
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                        'Item details copied'),
+                                                  ),
+                                                );
                                               },
                                             ),
                                           ],
                                         ),
                                         Text(
-                                          'Personal Belongings â¢ ID Cards',
+                                          columnItemsRecord.category.isNotEmpty
+                                              ? columnItemsRecord.category
+                                              : columnItemsRecord.type,
                                           style: FlutterFlowTheme.of(context)
                                               .bodyMedium
                                               .override(
@@ -321,38 +350,6 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                                         .titleMedium
                                                         .fontStyle,
                                                 lineHeight: 1.4,
-                                              ),
-                                        ),
-                                        Text(
-                                          'Lost near the BUITEMS Canteen area. Contains a student ID card (Reg: 2021-CS-42), some cash, and a library card. The wallet has a small scratch on the front right corner.',
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                font: GoogleFonts.inter(
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryText,
-                                                letterSpacing: 0.0,
-                                                fontWeight:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontWeight,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .fontStyle,
-                                                lineHeight: 1.5,
                                               ),
                                         ),
                                       ].divide(SizedBox(height: 8)),
@@ -450,12 +447,11 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                                     size: 24,
                                                   ),
                                                   Text(
-                                                    valueOrDefault<String>(
-                                                      columnItemsRecord
-                                                          .createdAt
-                                                          ?.toString(),
-                                                      'Date',
-                                                    ),
+                                                    columnItemsRecord
+                                                                .createdAt !=
+                                                            null
+                                                        ? '${columnItemsRecord.createdAt!.day}/${columnItemsRecord.createdAt!.month}/${columnItemsRecord.createdAt!.year}'
+                                                        : 'Date',
                                                     style: FlutterFlowTheme.of(
                                                             context)
                                                         .bodyMedium
@@ -589,105 +585,128 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-            Align(
-              alignment: AlignmentDirectional(0, 1),
-              child: Container(
-                height: 100,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).secondaryBackground,
-                  shape: BoxShape.rectangle,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      height: 1,
-                      decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).alternate,
-                        shape: BoxShape.rectangle,
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Container(
+                      Align(
+                        alignment: AlignmentDirectional(0, 1),
                         child: Container(
-                          height: 51,
-                          alignment: AlignmentDirectional(0, 0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: FlutterFlowTheme.of(context)
+                                .secondaryBackground,
+                            shape: BoxShape.rectangle,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(
-                                flex: 1,
-                                child: InkWell(
-                                  splashColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  onTap: () async {
-                                    await launchURL('tel:03000000000');
-                                  },
-                                  child: wrapWithModel(
-                                    model: _model.buttonModel1,
-                                    updateCallback: () => safeSetState(() {}),
-                                    child: ButtonWidget(
-                                      content: 'Call Owner',
-                                      icon: Icon(
-                                        Icons.call_rounded,
-                                        color: FlutterFlowTheme.of(context)
-                                            .primaryText,
-                                        size: 16,
+                              Container(
+                                height: 1,
+                                decoration: BoxDecoration(
+                                  color: FlutterFlowTheme.of(context).alternate,
+                                  shape: BoxShape.rectangle,
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(24),
+                                child: Container(
+                                  height: 51,
+                                  alignment: AlignmentDirectional(0, 0),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                        flex: 1,
+                                        child: InkWell(
+                                          splashColor: Colors.transparent,
+                                          focusColor: Colors.transparent,
+                                          hoverColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
+                                          onTap: () async {
+                                            final contact =
+                                                columnItemsRecord.contactInfo;
+                                            if (contact.isNotEmpty) {
+                                              await launchURL('tel:$contact');
+                                            }
+                                          },
+                                          child: wrapWithModel(
+                                            model: _model.buttonModel1,
+                                            updateCallback: () =>
+                                                safeSetState(() {}),
+                                            child: ButtonWidget(
+                                              content: 'Call Owner',
+                                              icon: Icon(
+                                                Icons.call_rounded,
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .primaryText,
+                                                size: 16,
+                                              ),
+                                              iconPresent: true,
+                                              iconEndPresent: false,
+                                              variant: 'outline',
+                                              size: 'large',
+                                              fullWidth: false,
+                                              loading: false,
+                                              disabled: false,
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                      iconPresent: true,
-                                      iconEndPresent: false,
-                                      variant: 'outline',
-                                      size: 'large',
-                                      fullWidth: false,
-                                      loading: false,
-                                      disabled: false,
-                                    ),
+                                      Expanded(
+                                        flex: 1,
+                                        child: InkWell(
+                                          splashColor: Colors.transparent,
+                                          focusColor: Colors.transparent,
+                                          hoverColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
+                                          onTap: () async {
+                                            final contact =
+                                                columnItemsRecord.contactInfo;
+                                            if (contact.isNotEmpty) {
+                                              await launchURL(
+                                                  'https://wa.me/$contact');
+                                            }
+                                          },
+                                          child: wrapWithModel(
+                                            model: _model.buttonModel2,
+                                            updateCallback: () =>
+                                                safeSetState(() {}),
+                                            child: ButtonWidget(
+                                              content: 'Send Message',
+                                              icon: Icon(
+                                                Icons
+                                                    .chat_bubble_outline_rounded,
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .onPrimary,
+                                                size: 16,
+                                              ),
+                                              iconPresent: true,
+                                              iconEndPresent: false,
+                                              variant: 'primary',
+                                              size: 'large',
+                                              fullWidth: false,
+                                              loading: false,
+                                              disabled: false,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ].divide(SizedBox(width: 16)),
                                   ),
                                 ),
                               ),
-                              Expanded(
-                                flex: 1,
-                                child: wrapWithModel(
-                                  model: _model.buttonModel2,
-                                  updateCallback: () => safeSetState(() {}),
-                                  child: ButtonWidget(
-                                    content: 'Send Message',
-                                    icon: Icon(
-                                      Icons.chat_bubble_outline_rounded,
-                                      color: FlutterFlowTheme.of(context)
-                                          .onPrimary,
-                                      size: 16,
-                                    ),
-                                    iconPresent: true,
-                                    iconEndPresent: false,
-                                    variant: 'primary',
-                                    size: 'large',
-                                    fullWidth: false,
-                                    loading: false,
-                                    disabled: false,
-                                  ),
-                                ),
-                              ),
-                            ].divide(SizedBox(width: 16)),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  );
+                },
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

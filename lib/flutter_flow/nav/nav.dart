@@ -130,6 +130,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               false,
               collectionNamePath: ['items'],
             ),
+            initialType: params.getParam(
+              'type',
+              ParamType.String,
+              false,
+            ),
           ),
         ),
         FFRoute(

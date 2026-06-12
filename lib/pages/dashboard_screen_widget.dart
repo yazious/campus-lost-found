@@ -308,7 +308,11 @@ class _DashboardScreenWidgetState extends State<DashboardScreenWidget> {
                                           highlightColor: Colors.transparent,
                                           onTap: () async {
                                             context.pushNamed(
-                                                FoundItemsFeedWidget.routeName);
+                                              ReportItemWidget.routeName,
+                                              queryParameters: {
+                                                'type': 'found',
+                                              },
+                                            );
                                           },
                                           child: wrapWithModel(
                                             model: _model.quickActionModel2,

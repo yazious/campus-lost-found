@@ -124,8 +124,8 @@ class _MyItemCardWidgetState extends State<MyItemCardWidget> {
                             Container(
                               decoration: BoxDecoration(
                                 color: widget!.status == 'found'
-                                    ? Color(0x00000000)
-                                    : Color(0x00000000),
+                                    ? Color(0xFF22C55E)
+                                    : Color(0xFFEF4444),
                                 borderRadius: BorderRadius.circular(8),
                                 shape: BoxShape.rectangle,
                               ),
@@ -152,8 +152,8 @@ class _MyItemCardWidgetState extends State<MyItemCardWidget> {
                                                     .fontStyle,
                                           ),
                                           color: widget!.status == 'found'
-                                              ? Color(0x00000000)
-                                              : Color(0x00000000),
+                                              ? Colors.white
+                                              : Colors.white,
                                           letterSpacing: 0.0,
                                           fontWeight:
                                               FlutterFlowTheme.of(context)
@@ -184,17 +184,19 @@ class _MyItemCardWidgetState extends State<MyItemCardWidget> {
                                         .secondaryText,
                                     size: 18,
                                   ),
-                                  onPressed: () async {
-                                    context.pushNamed(
-                                      ReportItemWidget.routeName,
-                                      queryParameters: {
-                                        'editItem': serializeParam(
-                                          widget!.itemRef,
-                                          ParamType.DocumentReference,
-                                        ),
-                                      }.withoutNulls,
-                                    );
-                                  },
+                                  onPressed: widget.itemRef == null
+                                      ? null
+                                      : () async {
+                                          context.pushNamed(
+                                            ReportItemWidget.routeName,
+                                            queryParameters: {
+                                              'editItem': serializeParam(
+                                                widget.itemRef,
+                                                ParamType.DocumentReference,
+                                              ),
+                                            }.withoutNulls,
+                                          );
+                                        },
                                 ),
                                 FlutterFlowIconButton(
                                   borderRadius: 8,
@@ -205,10 +207,39 @@ class _MyItemCardWidgetState extends State<MyItemCardWidget> {
                                     color: FlutterFlowTheme.of(context).error,
                                     size: 18,
                                   ),
-                                  onPressed: () async {
-                                    await widget!.itemRef!.delete();
-                                    safeSetState(() {});
-                                  },
+                                  onPressed: widget.itemRef == null
+                                      ? null
+                                      : () async {
+                                          final confirmed =
+                                              await showDialog<bool>(
+                                            context: context,
+                                            builder: (dialogContext) =>
+                                                AlertDialog(
+                                              title: const Text('Delete Item'),
+                                              content: const Text(
+                                                  'Are you sure you want to delete this item?'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                          dialogContext,
+                                                          false),
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                          dialogContext, true),
+                                                  child: const Text('Delete'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                          if (confirmed != true) return;
+                                          await widget.itemRef!.delete();
+                                          if (!mounted) return;
+                                          safeSetState(() {});
+                                        },
                                 ),
                               ].divide(SizedBox(width: 4)),
                             ),

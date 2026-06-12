@@ -12,6 +12,7 @@ import '/flutter_flow/form_field_controller.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -172,6 +173,7 @@ class _SignupScreenWidgetState extends State<SignupScreenWidget> {
                                 model: _model.fullNameFieldModel,
                                 updateCallback: () => safeSetState(() {}),
                                 child: TextFieldWidget(
+                                  model: _model.fullNameFieldModel,
                                   label: 'Full Name',
                                   labelPresent: true,
                                   helper: '',
@@ -193,6 +195,7 @@ class _SignupScreenWidgetState extends State<SignupScreenWidget> {
                                 model: _model.emailFieldModel,
                                 updateCallback: () => safeSetState(() {}),
                                 child: TextFieldWidget(
+                                  model: _model.emailFieldModel,
                                   label: 'BUITEMS Email',
                                   labelPresent: true,
                                   helper: '',
@@ -433,6 +436,7 @@ class _SignupScreenWidgetState extends State<SignupScreenWidget> {
                                 model: _model.phoneFieldModel,
                                 updateCallback: () => safeSetState(() {}),
                                 child: TextFieldWidget(
+                                  model: _model.phoneFieldModel,
                                   label: 'Phone Number',
                                   labelPresent: true,
                                   helper: '',
@@ -454,6 +458,7 @@ class _SignupScreenWidgetState extends State<SignupScreenWidget> {
                                 model: _model.passwordFieldModel,
                                 updateCallback: () => safeSetState(() {}),
                                 child: TextFieldWidget(
+                                  model: _model.passwordFieldModel,
                                   label: 'Password',
                                   labelPresent: true,
                                   helper: '',
@@ -480,11 +485,12 @@ class _SignupScreenWidgetState extends State<SignupScreenWidget> {
                             model: _model.checkboxModel,
                             updateCallback: () => safeSetState(() {}),
                             child: CheckboxWidget(
+                              model: _model.checkboxModel,
                               label: 'I agree to the Terms of Service',
                               subtitle:
                                   'and Privacy Policy for BUITEMS students',
                               color: FlutterFlowTheme.of(context).primary,
-                              isChecked: true,
+                              isChecked: false,
                               hasSubtitle: true,
                               disabled: false,
                             ),
@@ -495,38 +501,67 @@ class _SignupScreenWidgetState extends State<SignupScreenWidget> {
                             hoverColor: Colors.transparent,
                             highlightColor: Colors.transparent,
                             onTap: () async {
+                              final email = _model
+                                  .emailFieldModel.inputTextController.text
+                                  .trim();
+                              final password = _model
+                                  .passwordFieldModel.inputTextController.text;
+                              final fullName = _model
+                                  .fullNameFieldModel.inputTextController.text
+                                  .trim();
+
+                              if (fullName.isEmpty ||
+                                  email.isEmpty ||
+                                  password.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Please fill in all required fields'),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              if (!_model.checkboxModel.isChecked) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Please agree to the Terms of Service'),
+                                  ),
+                                );
+                                return;
+                              }
+
                               GoRouter.of(context).prepareAuthEvent();
 
                               final user =
                                   await authManager.createAccountWithEmail(
                                 context,
-                                _model.emailFieldModel.inputTextController.text,
-                                _model.passwordFieldModel.inputTextController
-                                    .text,
+                                email,
+                                password,
                               );
                               if (user == null) {
                                 return;
                               }
 
-                              await UsersRecord.collection
-                                  .doc(user.uid)
-                                  .update(createUsersRecordData(
-                                    userID: '',
-                                    department: _model.dropdownValue1,
-                                    name: _model.fullNameFieldModel
-                                        .inputTextController.text,
-                                    role: 'student',
-                                    createdAt: getCurrentTimestamp,
-                                    createdTime: getCurrentTimestamp,
-                                    displayName: _model.fullNameFieldModel
-                                        .inputTextController.text,
-                                    email: _model.emailFieldModel
-                                        .inputTextController.text,
-                                    uid: '',
-                                    phoneNumber: _model.phoneFieldModel
-                                        .inputTextController.text,
-                                  ));
+                              await UsersRecord.collection.doc(user.uid).set(
+                                    createUsersRecordData(
+                                      userID: user.uid,
+                                      department: _model.dropdownValue1,
+                                      name: fullName,
+                                      role: 'student',
+                                      createdAt: getCurrentTimestamp,
+                                      createdTime: getCurrentTimestamp,
+                                      displayName: fullName,
+                                      email: email,
+                                      uid: user.uid,
+                                      phoneNumber: _model.phoneFieldModel
+                                          .inputTextController.text,
+                                    ),
+                                    SetOptions(merge: true),
+                                  );
 
+                              if (!context.mounted) return;
                               context.pushNamedAuth(
                                   DashboardScreenWidget.routeName,
                                   context.mounted);
@@ -648,18 +683,28 @@ class _SignupScreenWidgetState extends State<SignupScreenWidget> {
                                           lineHeight: 1.5,
                                         ),
                                   ),
-                                  wrapWithModel(
-                                    model: _model.buttonModel2,
-                                    updateCallback: () => safeSetState(() {}),
-                                    child: ButtonWidget(
-                                      content: 'Login',
-                                      iconPresent: false,
-                                      iconEndPresent: false,
-                                      variant: 'ghost',
-                                      size: 'small',
-                                      fullWidth: false,
-                                      loading: false,
-                                      disabled: false,
+                                  InkWell(
+                                    splashColor: Colors.transparent,
+                                    focusColor: Colors.transparent,
+                                    hoverColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    onTap: () async {
+                                      context.pushNamed(
+                                          LoginScreenWidget.routeName);
+                                    },
+                                    child: wrapWithModel(
+                                      model: _model.buttonModel2,
+                                      updateCallback: () => safeSetState(() {}),
+                                      child: ButtonWidget(
+                                        content: 'Login',
+                                        iconPresent: false,
+                                        iconEndPresent: false,
+                                        variant: 'ghost',
+                                        size: 'small',
+                                        fullWidth: false,
+                                        loading: false,
+                                        disabled: false,
+                                      ),
                                     ),
                                   ),
                                 ].divide(SizedBox(width: 4)),

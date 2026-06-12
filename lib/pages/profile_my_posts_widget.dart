@@ -380,41 +380,71 @@ class _ProfileMyPostsWidgetState extends State<ProfileMyPostsWidget> {
                                             color: FlutterFlowTheme.of(context)
                                                 .alternate,
                                           ),
-                                          Row(
-                                            mainAxisSize: MainAxisSize.max,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceAround,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              wrapWithModel(
-                                                model: _model.studentStatModel1,
-                                                updateCallback: () =>
-                                                    safeSetState(() {}),
-                                                child: StudentStatWidget(
-                                                  label: 'Total Posts',
-                                                  value: '12',
-                                                ),
+                                          StreamBuilder<List<ItemsRecord>>(
+                                            stream: queryItemsRecord(
+                                              queryBuilder: (itemsRecord) =>
+                                                  itemsRecord.where(
+                                                'postedBy',
+                                                isEqualTo: currentUserUid,
                                               ),
-                                              wrapWithModel(
-                                                model: _model.studentStatModel2,
-                                                updateCallback: () =>
-                                                    safeSetState(() {}),
-                                                child: StudentStatWidget(
-                                                  label: 'Recovered',
-                                                  value: '8',
-                                                ),
-                                              ),
-                                              wrapWithModel(
-                                                model: _model.studentStatModel3,
-                                                updateCallback: () =>
-                                                    safeSetState(() {}),
-                                                child: StudentStatWidget(
-                                                  label: 'Active',
-                                                  value: '4',
-                                                ),
-                                              ),
-                                            ],
+                                            ),
+                                            builder: (context, statsSnapshot) {
+                                              final userItems =
+                                                  statsSnapshot.data ?? [];
+                                              final totalPosts =
+                                                  userItems.length.toString();
+                                              final recovered = userItems
+                                                  .where((i) =>
+                                                      i.status == 'recovered')
+                                                  .length
+                                                  .toString();
+                                              final active = userItems
+                                                  .where((i) =>
+                                                      i.status == 'active' ||
+                                                      i.status.isEmpty)
+                                                  .length
+                                                  .toString();
+                                              return Row(
+                                                mainAxisSize: MainAxisSize.max,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceAround,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: [
+                                                  wrapWithModel(
+                                                    model: _model
+                                                        .studentStatModel1,
+                                                    updateCallback: () =>
+                                                        safeSetState(() {}),
+                                                    child: StudentStatWidget(
+                                                      label: 'Total Posts',
+                                                      value: totalPosts,
+                                                    ),
+                                                  ),
+                                                  wrapWithModel(
+                                                    model: _model
+                                                        .studentStatModel2,
+                                                    updateCallback: () =>
+                                                        safeSetState(() {}),
+                                                    child: StudentStatWidget(
+                                                      label: 'Recovered',
+                                                      value: recovered,
+                                                    ),
+                                                  ),
+                                                  wrapWithModel(
+                                                    model: _model
+                                                        .studentStatModel3,
+                                                    updateCallback: () =>
+                                                        safeSetState(() {}),
+                                                    child: StudentStatWidget(
+                                                      label: 'Active',
+                                                      value: active,
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
                                           ),
                                         ].divide(SizedBox(height: 16)),
                                       ),
@@ -457,7 +487,16 @@ class _ProfileMyPostsWidgetState extends State<ProfileMyPostsWidget> {
                                                 lineHeight: 1.4,
                                               ),
                                         ),
-                                        wrapWithModel(
+                                        InkWell(
+                                          splashColor: Colors.transparent,
+                                          focusColor: Colors.transparent,
+                                          hoverColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
+                                          onTap: () async {
+                                            context.pushNamed(
+                                                LostItemsFeedWidget.routeName);
+                                          },
+                                          child: wrapWithModel(
                                           model: _model.buttonModel1,
                                           updateCallback: () =>
                                               safeSetState(() {}),
@@ -471,6 +510,7 @@ class _ProfileMyPostsWidgetState extends State<ProfileMyPostsWidget> {
                                             loading: false,
                                             disabled: false,
                                           ),
+                                        ),
                                         ),
                                       ],
                                     ),
@@ -531,12 +571,23 @@ class _ProfileMyPostsWidgetState extends State<ProfileMyPostsWidget> {
                                                 key: Key(
                                                   'Key727_${columnItemsRecord.itemId}',
                                                 ),
-                                                date: 'Oct 12',
+                                                date: columnItemsRecord
+                                                            .createdAt !=
+                                                        null
+                                                    ? dateTimeFormat(
+                                                        'relative',
+                                                        columnItemsRecord
+                                                            .createdAt!)
+                                                    : 'Recently',
                                                 imgDesc:
-                                                    'https://dimg.dreamflow.cloud/v1/image/black%20laptop%20power%20adapter',
-                                                location: 'Central Library',
-                                                title: 'HP Laptop Charger',
-                                                status: 'lost',
+                                                    'https://dimg.dreamflow.cloud/v1/image/${Uri.encodeComponent(columnItemsRecord.title)}',
+                                                location:
+                                                    columnItemsRecord.location,
+                                                title: columnItemsRecord.title,
+                                                status: columnItemsRecord.type
+                                                        .isNotEmpty
+                                                    ? columnItemsRecord.type
+                                                    : 'lost',
                                                 itemRef:
                                                     columnItemsRecord.reference,
                                               ),
@@ -666,42 +717,6 @@ class _ProfileMyPostsWidgetState extends State<ProfileMyPostsWidget> {
                                                   FlutterFlowTheme.of(context)
                                                       .alternate,
                                             ),
-                                            Expanded(
-                                              flex: 1,
-                                              child: Text(
-                                                'Notification Preferences',
-                                                style:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                          lineHeight: 1.5,
-                                                        ),
-                                              ),
-                                            ),
                                             Padding(
                                               padding: EdgeInsets.all(16),
                                               child: Row(
@@ -718,6 +733,41 @@ class _ProfileMyPostsWidgetState extends State<ProfileMyPostsWidget> {
                                                             context)
                                                         .primary,
                                                     size: 24,
+                                                  ),
+                                                  Expanded(
+                                                    flex: 1,
+                                                    child: Text(
+                                                      'Notification Preferences',
+                                                      style:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font:
+                                                                    GoogleFonts
+                                                                        .inter(
+                                                                  fontWeight: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontWeight,
+                                                                  fontStyle: FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMedium
+                                                                      .fontStyle,
+                                                                ),
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontWeight,
+                                                                fontStyle: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                                lineHeight: 1.5,
+                                                              ),
+                                                    ),
                                                   ),
                                                   Icon(
                                                     Icons.chevron_right_rounded,
@@ -809,7 +859,9 @@ class _ProfileMyPostsWidgetState extends State<ProfileMyPostsWidget> {
                                       hoverColor: Colors.transparent,
                                       highlightColor: Colors.transparent,
                                       onTap: () async {
-                                        context.pushNamed(
+                                        await authManager.signOut();
+                                        if (!context.mounted) return;
+                                        context.goNamed(
                                             WelcomeScreenWidget.routeName);
                                       },
                                       child: wrapWithModel(

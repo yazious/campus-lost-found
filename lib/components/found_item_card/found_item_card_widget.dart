@@ -6,7 +6,6 @@ import '/index.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -54,18 +53,7 @@ class _FoundItemCardWidgetState extends State<FoundItemCardWidget> {
     super.initState();
     _model = createModel(context, () => FoundItemCardModel());
 
-    // On component load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      context.pushNamed(
-        ItemDetailWidget.routeName,
-        queryParameters: {
-          'itemRef': serializeParam(
-            widget!.itemRef,
-            ParamType.DocumentReference,
-          ),
-        }.withoutNulls,
-      );
-    });
+    // Navigation handled by InkWell onTap below.
   }
 
   @override
@@ -85,17 +73,19 @@ class _FoundItemCardWidgetState extends State<FoundItemCardWidget> {
           focusColor: Colors.transparent,
           hoverColor: Colors.transparent,
           highlightColor: Colors.transparent,
-          onTap: () async {
-            context.goNamed(
-              ItemDetailWidget.routeName,
-              queryParameters: {
-                'itemRef': serializeParam(
-                  widget!.itemRef,
-                  ParamType.DocumentReference,
-                ),
-              }.withoutNulls,
-            );
-          },
+          onTap: widget.itemRef == null
+              ? null
+              : () async {
+                  context.pushNamed(
+                    ItemDetailWidget.routeName,
+                    queryParameters: {
+                      'itemRef': serializeParam(
+                        widget.itemRef,
+                        ParamType.DocumentReference,
+                      ),
+                    }.withoutNulls,
+                  );
+                },
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Container(

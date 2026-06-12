@@ -8,6 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class CheckboxModel extends FlutterFlowModel<CheckboxWidget> {
+  bool isChecked = false;
+
   @override
   void initState(BuildContext context) {}
 

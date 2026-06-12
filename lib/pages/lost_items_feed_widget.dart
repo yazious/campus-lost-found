@@ -149,15 +149,15 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                                               (record) =>
                                                   TextSearchItem.fromTerms(
                                                       record, [
-                                                record.itemId!,
-                                                record.title!,
-                                                record.type!,
-                                                record.category!,
-                                                record.location!,
-                                                record.status!,
-                                                record.description!,
-                                                record.postedBy!,
-                                                record.postedByName!
+                                                record.itemId,
+                                                record.title,
+                                                record.type,
+                                                record.category,
+                                                record.location,
+                                                record.status,
+                                                record.description,
+                                                record.postedBy,
+                                                record.postedByName,
                                               ]),
                                             )
                                             .toList(),
@@ -175,6 +175,7 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                                 model: _model.searchFieldModel,
                                 updateCallback: () => safeSetState(() {}),
                                 child: TextFieldWidget(
+                                  model: _model.searchFieldModel,
                                   label: '',
                                   labelPresent: false,
                                   helper: '',
@@ -249,6 +250,17 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                       );
                     }
                     List<ItemsRecord> columnItemsRecordList = snapshot.data!;
+                    List<ItemsRecord> displayList =
+                        _model.simpleSearchResults.isNotEmpty
+                            ? _model.simpleSearchResults
+                            : columnItemsRecordList;
+                    if (_model.simpleSearchResults.isEmpty &&
+                        _model.selectedCategory != 'all') {
+                      displayList = displayList
+                          .where((record) =>
+                              record.category == _model.selectedCategory)
+                          .toList();
+                    }
 
                     return SingleChildScrollView(
                       primary: false,
@@ -256,10 +268,101 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: List.generate(columnItemsRecordList.length,
-                            (columnIndex) {
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(24, 0, 24, 0),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      _model.selectedCategory = 'all';
+                                      _model.simpleSearchResults = [];
+                                      safeSetState(() {});
+                                    },
+                                    child: CategoryChipWidget(
+                                      icon: Icon(Icons.grid_view_rounded,
+                                          color: _model.selectedCategory ==
+                                                  'all'
+                                              ? FlutterFlowTheme.of(context)
+                                                  .onPrimary
+                                              : FlutterFlowTheme.of(context)
+                                                  .secondaryText,
+                                          size: 18),
+                                      label: 'All',
+                                      selected:
+                                          _model.selectedCategory == 'all',
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      _model.selectedCategory = 'Electronics';
+                                      _model.simpleSearchResults = [];
+                                      safeSetState(() {});
+                                    },
+                                    child: CategoryChipWidget(
+                                      icon: Icon(Icons.devices_rounded,
+                                          color: _model.selectedCategory ==
+                                                  'Electronics'
+                                              ? FlutterFlowTheme.of(context)
+                                                  .onPrimary
+                                              : FlutterFlowTheme.of(context)
+                                                  .secondaryText,
+                                          size: 18),
+                                      label: 'Electronics',
+                                      selected: _model.selectedCategory ==
+                                          'Electronics',
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      _model.selectedCategory = 'Documents';
+                                      _model.simpleSearchResults = [];
+                                      safeSetState(() {});
+                                    },
+                                    child: CategoryChipWidget(
+                                      icon: Icon(Icons.description_rounded,
+                                          color: _model.selectedCategory ==
+                                                  'Documents'
+                                              ? FlutterFlowTheme.of(context)
+                                                  .onPrimary
+                                              : FlutterFlowTheme.of(context)
+                                                  .secondaryText,
+                                          size: 18),
+                                      label: 'Documents',
+                                      selected: _model.selectedCategory ==
+                                          'Documents',
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      _model.selectedCategory = 'Clothing';
+                                      _model.simpleSearchResults = [];
+                                      safeSetState(() {});
+                                    },
+                                    child: CategoryChipWidget(
+                                      icon: Icon(Icons.person_rounded,
+                                          color: _model.selectedCategory ==
+                                                  'Clothing'
+                                              ? FlutterFlowTheme.of(context)
+                                                  .onPrimary
+                                              : FlutterFlowTheme.of(context)
+                                                  .secondaryText,
+                                          size: 18),
+                                      label: 'Personal',
+                                      selected: _model.selectedCategory ==
+                                          'Clothing',
+                                    ),
+                                  ),
+                                ].divide(SizedBox(width: 8)),
+                              ),
+                            ),
+                          ),
+                          ...List.generate(displayList.length, (columnIndex) {
                           final columnItemsRecord =
-                              columnItemsRecordList[columnIndex];
+                              displayList[columnIndex];
                           return Padding(
                             padding: EdgeInsets.all(24),
                             child: Container(
@@ -268,113 +371,6 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        InkWell(
-                                          splashColor: Colors.transparent,
-                                          focusColor: Colors.transparent,
-                                          hoverColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          onTap: () async {
-                                            _model.selectedCategory = 'all';
-                                            safeSetState(() {});
-                                          },
-                                          child: CategoryChipWidget(
-                                            key: Key(
-                                                'Key328_${columnIndex}_of_${columnItemsRecordList.length}'),
-                                            icon: Icon(
-                                              Icons.grid_view_rounded,
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .onPrimary,
-                                              size: 18,
-                                            ),
-                                            label: 'All',
-                                            selected: true,
-                                          ),
-                                        ),
-                                        InkWell(
-                                          splashColor: Colors.transparent,
-                                          focusColor: Colors.transparent,
-                                          hoverColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          onTap: () async {
-                                            _model.selectedCategory =
-                                                'Electronics';
-                                            safeSetState(() {});
-                                          },
-                                          child: CategoryChipWidget(
-                                            key: Key(
-                                                'Key329_${columnIndex}_of_${columnItemsRecordList.length}'),
-                                            icon: Icon(
-                                              Icons.devices_rounded,
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .secondaryText,
-                                              size: 18,
-                                            ),
-                                            label: 'Electronics',
-                                            selected: false,
-                                          ),
-                                        ),
-                                        InkWell(
-                                          splashColor: Colors.transparent,
-                                          focusColor: Colors.transparent,
-                                          hoverColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          onTap: () async {
-                                            _model.selectedCategory =
-                                                'Documents';
-                                            safeSetState(() {});
-                                          },
-                                          child: CategoryChipWidget(
-                                            key: Key(
-                                                'Key330_${columnIndex}_of_${columnItemsRecordList.length}'),
-                                            icon: Icon(
-                                              Icons.description_rounded,
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .secondaryText,
-                                              size: 18,
-                                            ),
-                                            label: 'Documents',
-                                            selected: false,
-                                          ),
-                                        ),
-                                        InkWell(
-                                          splashColor: Colors.transparent,
-                                          focusColor: Colors.transparent,
-                                          hoverColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          onTap: () async {
-                                            _model.selectedCategory =
-                                                'Personal';
-                                            safeSetState(() {});
-                                          },
-                                          child: CategoryChipWidget(
-                                            key: Key(
-                                                'Key331_${columnIndex}_of_${columnItemsRecordList.length}'),
-                                            icon: Icon(
-                                              Icons.person_rounded,
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .secondaryText,
-                                              size: 18,
-                                            ),
-                                            label: 'Personal',
-                                            selected: false,
-                                          ),
-                                        ),
-                                      ].divide(SizedBox(width: 8)),
-                                    ),
-                                  ),
                                   wrapWithModel(
                                     model: _model.lostItemCardModels1.getModel(
                                       columnItemsRecord.itemId,
@@ -385,81 +381,24 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                                       key: Key(
                                         'Key368_${columnItemsRecord.itemId}',
                                       ),
-                                      date: '2 hours ago',
+                                      date: columnItemsRecord.createdAt != null
+                                          ? dateTimeFormat(
+                                              'relative',
+                                              columnItemsRecord.createdAt!)
+                                          : 'Recently',
                                       description:
-                                          'Contains a Dell charger and a blue notebook. Left near the study cubicles.',
+                                          columnItemsRecord.description,
                                       imgDesc:
-                                          'https://dimg.dreamflow.cloud/v1/image/black%20backpack%20on%20a%20chair',
-                                      initials: 'AK',
-                                      location: 'Library Basement',
-                                      title: 'Black Laptop Bag',
-                                      user: 'Ahmed Khan',
-                                      itemRef: columnItemsRecord.reference,
-                                    ),
-                                  ),
-                                  wrapWithModel(
-                                    model: _model.lostItemCardModels2.getModel(
-                                      columnItemsRecord.itemId,
-                                      columnIndex,
-                                    ),
-                                    updateCallback: () => safeSetState(() {}),
-                                    child: LostItemCardWidget(
-                                      key: Key(
-                                        'Key369_${columnItemsRecord.itemId}',
-                                      ),
-                                      date: 'Today, 10:15 AM',
-                                      description:
-                                          'Blue color, transparent case. Has a sticker of a cat on the back.',
-                                      imgDesc:
-                                          'https://dimg.dreamflow.cloud/v1/image/smartphone%20on%20a%20table',
-                                      initials: 'SA',
-                                      location: 'Cafe Area',
-                                      title: 'iPhone 13 Pro',
-                                      user: 'Sara Ali',
-                                      itemRef: columnItemsRecord.reference,
-                                    ),
-                                  ),
-                                  wrapWithModel(
-                                    model: _model.lostItemCardModels3.getModel(
-                                      columnItemsRecord.itemId,
-                                      columnIndex,
-                                    ),
-                                    updateCallback: () => safeSetState(() {}),
-                                    child: LostItemCardWidget(
-                                      key: Key(
-                                        'Key370_${columnItemsRecord.itemId}',
-                                      ),
-                                      date: 'Yesterday',
-                                      description:
-                                          'ID card for Department of CS. Name: Zayn Malik, Roll No: 12345.',
-                                      imgDesc:
-                                          'https://dimg.dreamflow.cloud/v1/image/plastic%20identification%20card',
-                                      initials: 'ZM',
-                                      location: 'Admin Block',
-                                      title: 'Student ID Card',
-                                      user: 'Zayn Malik',
-                                      itemRef: columnItemsRecord.reference,
-                                    ),
-                                  ),
-                                  wrapWithModel(
-                                    model: _model.lostItemCardModels4.getModel(
-                                      columnItemsRecord.itemId,
-                                      columnIndex,
-                                    ),
-                                    updateCallback: () => safeSetState(() {}),
-                                    child: LostItemCardWidget(
-                                      key: Key(
-                                        'Key371_${columnItemsRecord.itemId}',
-                                      ),
-                                      date: 'Oct 24',
-                                      description:
-                                          'Casio fx-991EX. Name written on the back with a permanent marker.',
-                                      imgDesc:
-                                          'https://dimg.dreamflow.cloud/v1/image/casio%20calculator',
-                                      initials: 'BJ',
-                                      location: 'Physics Lab',
-                                      title: 'Scientific Calculator',
-                                      user: 'Bilal J.',
+                                          'https://dimg.dreamflow.cloud/v1/image/${Uri.encodeComponent(columnItemsRecord.title)}',
+                                      initials: columnItemsRecord.postedByName
+                                              .isNotEmpty
+                                          ? columnItemsRecord.postedByName
+                                              .substring(0, 2)
+                                              .toUpperCase()
+                                          : 'UN',
+                                      location: columnItemsRecord.location,
+                                      title: columnItemsRecord.title,
+                                      user: columnItemsRecord.postedByName,
                                       itemRef: columnItemsRecord.reference,
                                     ),
                                   ),
@@ -471,6 +410,7 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                             ),
                           );
                         }),
+                        ],
                       ),
                     );
                   },
@@ -507,7 +447,16 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Column(
+                              InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  context.pushNamed(
+                                      DashboardScreenWidget.routeName);
+                                },
+                                child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -549,7 +498,17 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                                   ),
                                 ].divide(SizedBox(height: 4)),
                               ),
-                              Column(
+                              ),
+                              InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  context.pushNamed(
+                                      LostItemsFeedWidget.routeName);
+                                },
+                                child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -584,7 +543,17 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                                   ),
                                 ].divide(SizedBox(height: 4)),
                               ),
-                              Column(
+                              ),
+                              InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  context.pushNamed(
+                                      FoundItemsFeedWidget.routeName);
+                                },
+                                child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -626,7 +595,16 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                                   ),
                                 ].divide(SizedBox(height: 4)),
                               ),
-                              Column(
+                              ),
+                              InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  context.pushNamed(ReportItemWidget.routeName);
+                                },
+                                child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -650,7 +628,17 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                                   ),
                                 ].divide(SizedBox(height: 4)),
                               ),
-                              Column(
+                              ),
+                              InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  context.pushNamed(
+                                      ProfileMyPostsWidget.routeName);
+                                },
+                                child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -691,6 +679,7 @@ class _LostItemsFeedWidgetState extends State<LostItemsFeedWidget> {
                                         ),
                                   ),
                                 ].divide(SizedBox(height: 4)),
+                              ),
                               ),
                             ],
                           ),

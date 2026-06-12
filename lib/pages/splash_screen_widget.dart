@@ -35,7 +35,8 @@ class _SplashScreenWidgetState extends State<SplashScreenWidget> {
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      context.pushNamed(WelcomeScreenWidget.routeName);
+      if (!mounted) return;
+      context.goNamed(WelcomeScreenWidget.routeName);
     });
   }
 
@@ -223,7 +224,7 @@ class _SplashScreenWidgetState extends State<SplashScreenWidget> {
                           hoverColor: Colors.transparent,
                           highlightColor: Colors.transparent,
                           onTap: () async {
-                            context.pushNamed(DashboardScreenWidget.routeName);
+                            context.pushNamed(WelcomeScreenWidget.routeName);
                           },
                           child: Lottie.network(
                             'https://dimg.dreamflow.cloud/v1/lottie/blue+circular+loading+spinner',

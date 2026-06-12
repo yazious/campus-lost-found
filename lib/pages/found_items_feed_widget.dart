@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
+import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -170,6 +171,7 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                               model: _model.textFieldModel,
                               updateCallback: () => safeSetState(() {}),
                               child: TextFieldWidget(
+                                model: _model.textFieldModel,
                                 label: '',
                                 labelPresent: false,
                                 helper: '',
@@ -272,12 +274,19 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                       key: Key(
                                         'Key466_${columnItemsRecord.itemId}',
                                       ),
-                                      category: 'Electronics',
-                                      date: '2 hours ago',
+                                      category: columnItemsRecord.category
+                                              .isNotEmpty
+                                          ? columnItemsRecord.category
+                                          : 'Other',
+                                      date: columnItemsRecord.createdAt != null
+                                          ? dateTimeFormat(
+                                              'relative',
+                                              columnItemsRecord.createdAt!)
+                                          : 'Recently',
                                       imgDesc:
-                                          'https://dimg.dreamflow.cloud/v1/image/silver%20apple%20watch%20on%20wooden%20table',
-                                      location: 'Main Library, 2nd Floor',
-                                      title: 'Silver Apple Watch',
+                                          'https://dimg.dreamflow.cloud/v1/image/${Uri.encodeComponent(columnItemsRecord.title)}',
+                                      location: columnItemsRecord.location,
+                                      title: columnItemsRecord.title,
                                       itemRef: columnItemsRecord.reference,
                                     ),
                                   ),
@@ -324,7 +333,16 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Column(
+                            InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () async {
+                                context.pushNamed(
+                                    DashboardScreenWidget.routeName);
+                              },
+                              child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -364,7 +382,17 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                 ),
                               ].divide(SizedBox(height: 4)),
                             ),
-                            Column(
+                            ),
+                            InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () async {
+                                context.pushNamed(
+                                    LostItemsFeedWidget.routeName);
+                              },
+                              child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -404,7 +432,17 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                 ),
                               ].divide(SizedBox(height: 4)),
                             ),
-                            Column(
+                            ),
+                            InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () async {
+                                context.pushNamed(
+                                    FoundItemsFeedWidget.routeName);
+                              },
+                              child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -443,7 +481,16 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                 ),
                               ].divide(SizedBox(height: 4)),
                             ),
-                            Column(
+                            ),
+                            InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () async {
+                                context.pushNamed(ReportItemWidget.routeName);
+                              },
+                              child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -466,7 +513,17 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                 ),
                               ].divide(SizedBox(height: 4)),
                             ),
-                            Column(
+                            ),
+                            InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () async {
+                                context.pushNamed(
+                                    ProfileMyPostsWidget.routeName);
+                              },
+                              child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -505,6 +562,7 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                       ),
                                 ),
                               ].divide(SizedBox(height: 4)),
+                            ),
                             ),
                           ],
                         ),

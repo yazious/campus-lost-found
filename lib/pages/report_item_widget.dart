@@ -13,6 +13,7 @@ import 'dart:ui';
 import '/index.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -23,9 +24,11 @@ class ReportItemWidget extends StatefulWidget {
   const ReportItemWidget({
     super.key,
     this.editItem,
+    this.initialType,
   });
 
   final DocumentReference? editItem;
+  final String? initialType;
 
   static String routeName = 'ReportItem';
   static String routePath = '/reportItem';
@@ -43,6 +46,40 @@ class _ReportItemWidgetState extends State<ReportItemWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => ReportItemModel());
+    if (widget.initialType != null && widget.initialType!.isNotEmpty) {
+      _model.selectedType = widget.initialType!;
+    }
+    if (widget.editItem != null) {
+      SchedulerBinding.instance.addPostFrameCallback((_) => _loadEditItem());
+    }
+  }
+
+  Future<void> _loadEditItem() async {
+    if (widget.editItem == null) return;
+    final record = await ItemsRecord.getDocumentOnce(widget.editItem!);
+    if (!mounted) return;
+    _model.selectedType = record.type.isNotEmpty ? record.type : 'lost';
+    _model.dropdownValue = record.category.isNotEmpty
+        ? record.category
+        : _model.dropdownValue;
+    _model.dropdownValueController ??= FormFieldController<String>(
+      _model.dropdownValue,
+    );
+    _model.dropdownValueController!.value = _model.dropdownValue;
+    _model.titleFieldModel.ensureInitialized(record.title);
+    _model.titleFieldModel.inputTextController.text = record.title;
+    _model.categoryFieldModel.ensureInitialized(record.description);
+    _model.categoryFieldModel.inputTextController.text = record.description;
+    _model.locationFieldModel.ensureInitialized(record.location);
+    _model.locationFieldModel.inputTextController.text = record.location;
+    _model.textFieldModel.ensureInitialized(record.contactInfo);
+    _model.textFieldModel.inputTextController.text = record.contactInfo;
+    if (record.date != null) {
+      _model.dateFieldModel.ensureInitialized();
+      _model.dateFieldModel.inputTextController.text =
+          '${record.date!.day}/${record.date!.month}/${record.date!.year}';
+    }
+    safeSetState(() {});
   }
 
   @override
@@ -152,14 +189,79 @@ class _ReportItemWidgetState extends State<ReportItemWidget> {
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                color: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
+                                color: FlutterFlowTheme.of(context).secondaryBackground,
                                 borderRadius: BorderRadius.circular(16),
                                 shape: BoxShape.rectangle,
                               ),
                               child: Padding(
                                 padding: EdgeInsets.all(16),
-                                child: Container(),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Item Type',
+                                        style: FlutterFlowTheme.of(context).labelMedium),
+                                    SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: () => safeSetState(() => _model.selectedType = 'lost'),
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(vertical: 10),
+                                              decoration: BoxDecoration(
+                                                color: _model.selectedType == 'lost'
+                                                    ? FlutterFlowTheme.of(context).error
+                                                    : FlutterFlowTheme.of(context).secondaryBackground,
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: FlutterFlowTheme.of(context).alternate,
+                                                ),
+                                              ),
+                                              alignment: Alignment.center,
+                                              child: Text('Lost',
+                                                style: FlutterFlowTheme.of(context).labelMedium.override(
+                                                  font: GoogleFonts.inter(),
+                                                  color: _model.selectedType == 'lost'
+                                                      ? Colors.white
+                                                      : FlutterFlowTheme.of(context).primaryText,
+                                                  letterSpacing: 0.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: 12),
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: () => safeSetState(() => _model.selectedType = 'found'),
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(vertical: 10),
+                                              decoration: BoxDecoration(
+                                                color: _model.selectedType == 'found'
+                                                    ? FlutterFlowTheme.of(context).success
+                                                    : FlutterFlowTheme.of(context).secondaryBackground,
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: FlutterFlowTheme.of(context).alternate,
+                                                ),
+                                              ),
+                                              alignment: Alignment.center,
+                                              child: Text('Found',
+                                                style: FlutterFlowTheme.of(context).labelMedium.override(
+                                                  font: GoogleFonts.inter(),
+                                                  color: _model.selectedType == 'found'
+                                                      ? Colors.white
+                                                      : FlutterFlowTheme.of(context).primaryText,
+                                                  letterSpacing: 0.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             Column(
@@ -184,6 +286,7 @@ class _ReportItemWidgetState extends State<ReportItemWidget> {
                                   model: _model.titleFieldModel,
                                   updateCallback: () => safeSetState(() {}),
                                   child: TextFieldWidget(
+                                    model: _model.titleFieldModel,
                                     label: 'Item Title',
                                     labelPresent: true,
                                     helper: '',
@@ -285,6 +388,7 @@ class _ReportItemWidgetState extends State<ReportItemWidget> {
                                   model: _model.categoryFieldModel,
                                   updateCallback: () => safeSetState(() {}),
                                   child: TextFieldWidget(
+                                    model: _model.categoryFieldModel,
                                     label: 'Description',
                                     labelPresent: true,
                                     helper: '',
@@ -332,6 +436,7 @@ class _ReportItemWidgetState extends State<ReportItemWidget> {
                                         updateCallback: () =>
                                             safeSetState(() {}),
                                         child: TextFieldWidget(
+                                          model: _model.locationFieldModel,
                                           label: 'Location',
                                           labelPresent: true,
                                           helper: '',
@@ -354,6 +459,7 @@ class _ReportItemWidgetState extends State<ReportItemWidget> {
                                         updateCallback: () =>
                                             safeSetState(() {}),
                                         child: TextFieldWidget(
+                                          model: _model.dateFieldModel,
                                           label: 'Date',
                                           labelPresent: true,
                                           helper: '',
@@ -398,6 +504,7 @@ class _ReportItemWidgetState extends State<ReportItemWidget> {
                                   model: _model.textFieldModel,
                                   updateCallback: () => safeSetState(() {}),
                                   child: TextFieldWidget(
+                                    model: _model.textFieldModel,
                                     label: 'Phone Number',
                                     labelPresent: true,
                                     helper: '',
@@ -431,31 +538,85 @@ class _ReportItemWidgetState extends State<ReportItemWidget> {
                                     hoverColor: Colors.transparent,
                                     highlightColor: Colors.transparent,
                                     onTap: () async {
-                                      await ItemsRecord.collection
-                                          .doc()
-                                          .set(createItemsRecordData(
-                                            itemId: currentUserUid,
-                                            title: _model.titleFieldModel
-                                                .inputTextController.text,
-                                            type: 'lost',
-                                            category: _model.categoryFieldModel
-                                                .inputTextController.text,
-                                            description: _model
-                                                .categoryFieldModel
-                                                .inputTextController
-                                                .text,
-                                            location: _model.locationFieldModel
-                                                .inputTextController.text,
-                                            date: getCurrentTimestamp,
-                                            postedBy: currentUserUid,
-                                            postedByName:
-                                                currentUserDisplayName,
-                                            contactInfo: _model.textFieldModel
-                                                .inputTextController.text,
-                                            status: 'active',
-                                            createdAt: getCurrentTimestamp,
-                                          ));
-                                      context.safePop();
+                                      final title = _model.titleFieldModel
+                                          .inputTextController.text
+                                          .trim();
+                                      if (title.isEmpty) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Please enter an item title'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      if (_model.isSaving) return;
+                                      safeSetState(() => _model.isSaving = true);
+
+                                      try {
+                                        if (widget.editItem != null) {
+                                          await widget.editItem!.update(
+                                            createItemsRecordData(
+                                              title: title,
+                                              type: _model.selectedType,
+                                              category: _model.dropdownValue ??
+                                                  'Other',
+                                              description: _model
+                                                  .categoryFieldModel
+                                                  .inputTextController
+                                                  .text,
+                                              location: _model
+                                                  .locationFieldModel
+                                                  .inputTextController
+                                                  .text,
+                                              contactInfo: _model
+                                                  .textFieldModel
+                                                  .inputTextController
+                                                  .text,
+                                            ),
+                                          );
+                                        } else {
+                                          final docRef =
+                                              ItemsRecord.collection.doc();
+                                          await docRef.set(
+                                            createItemsRecordData(
+                                              itemId: docRef.id,
+                                              title: title,
+                                              type: _model.selectedType,
+                                              category:
+                                                  _model.dropdownValue ??
+                                                      'Other',
+                                              description: _model
+                                                  .categoryFieldModel
+                                                  .inputTextController
+                                                  .text,
+                                              location: _model
+                                                  .locationFieldModel
+                                                  .inputTextController
+                                                  .text,
+                                              date: getCurrentTimestamp,
+                                              postedBy: currentUserUid,
+                                              postedByName:
+                                                  currentUserDisplayName,
+                                              contactInfo: _model
+                                                  .textFieldModel
+                                                  .inputTextController
+                                                  .text,
+                                              status: 'active',
+                                              createdAt: getCurrentTimestamp,
+                                            ),
+                                          );
+                                        }
+                                        if (!context.mounted) return;
+                                        context.safePop();
+                                      } finally {
+                                        if (mounted) {
+                                          safeSetState(
+                                              () => _model.isSaving = false);
+                                        }
+                                      }
                                     },
                                     child: wrapWithModel(
                                       model: _model.buttonModel,

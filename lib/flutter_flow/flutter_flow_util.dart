@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:collection/collection.dart';
 import 'package:text_search/text_search.dart';
+import 'package:intl/intl.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'nav/serialization_util.dart';
@@ -22,6 +24,13 @@ T valueOrDefault<T>(T? value, T defaultValue) =>
     (value is String && value.isEmpty) || value == null ? defaultValue : value;
 
 DateTime get getCurrentTimestamp => DateTime.now();
+
+String dateTimeFormat(String format, DateTime dateTime) {
+  if (format == 'relative') {
+    return timeago.format(dateTime);
+  }
+  return DateFormat(format).format(dateTime);
+}
 
 DateTime dateTimeFromSecondsSinceEpoch(int seconds) {
   return DateTime.fromMillisecondsSinceEpoch(seconds * 1000);

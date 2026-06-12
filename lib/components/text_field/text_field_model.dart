@@ -13,14 +13,25 @@ class TextFieldModel extends FlutterFlowModel<TextFieldWidget> {
   // State field(s) for Input widget.
   late FocusNode inputFocusNode;
   late TextEditingController inputTextController;
+  bool hasInitializedControllers = false;
   String? Function(BuildContext, String?)? inputTextControllerValidator;
+
+  void ensureInitialized([String value = '']) {
+    if (!hasInitializedControllers) {
+      inputTextController = TextEditingController(text: value);
+      inputFocusNode = FocusNode();
+      hasInitializedControllers = true;
+    }
+  }
 
   @override
   void initState(BuildContext context) {}
 
   @override
   void dispose() {
-    inputFocusNode.dispose();
-    inputTextController.dispose();
+    if (hasInitializedControllers) {
+      inputFocusNode.dispose();
+      inputTextController.dispose();
+    }
   }
 }

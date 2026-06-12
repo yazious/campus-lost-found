@@ -39,6 +39,9 @@ class ReportItemModel extends FlutterFlowModel<ReportItemWidget> {
   late FormSectionHeaderModel formSectionHeaderModel3;
   // Model for TextField.
   late TextFieldModel textFieldModel;
+  // Item type: lost or found
+  String selectedType = "lost";
+  bool isSaving = false;
   // Model for Button.
   late ButtonModel buttonModel;
 
