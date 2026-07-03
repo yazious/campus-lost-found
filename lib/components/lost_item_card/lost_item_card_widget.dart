@@ -25,6 +25,7 @@ class LostItemCardWidget extends StatefulWidget {
     String? location,
     String? title,
     String? user,
+    String? phone,
     required this.itemRef,
   })  : this.date = date ?? '2 hours ago',
         this.description = description ??
@@ -34,7 +35,8 @@ class LostItemCardWidget extends StatefulWidget {
         this.initials = initials ?? 'AK',
         this.location = location ?? 'Library Basement',
         this.title = title ?? 'Black Laptop Bag',
-        this.user = user ?? 'Ahmed Khan';
+        this.user = user ?? 'Ahmed Khan',
+        this.phone = phone ?? '';
 
   final String date;
   final String description;
@@ -43,6 +45,7 @@ class LostItemCardWidget extends StatefulWidget {
   final String location;
   final String title;
   final String user;
+  final String phone;
   final DocumentReference? itemRef;
 
   @override
@@ -67,7 +70,6 @@ class _LostItemCardWidgetState extends State<LostItemCardWidget> {
   @override
   void dispose() {
     _model.maybeDispose();
-
     super.dispose();
   }
 
@@ -111,7 +113,6 @@ class _LostItemCardWidgetState extends State<LostItemCardWidget> {
                             safeSetState(() =>
                                 _model.isDataUploading_uploadDataGh4 = true);
                             var selectedUploadedFiles = <FFUploadedFile>[];
-
                             var downloadUrls = <String>[];
                             try {
                               selectedUploadedFiles = selectedMedia
@@ -124,7 +125,6 @@ class _LostItemCardWidgetState extends State<LostItemCardWidget> {
                                         originalFilename: m.originalFilename,
                                       ))
                                   .toList();
-
                               downloadUrls = (await Future.wait(
                                 selectedMedia.map(
                                   (m) async =>
@@ -253,11 +253,12 @@ class _LostItemCardWidgetState extends State<LostItemCardWidget> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Text(
-                            valueOrDefault<String>(
-                              widget!.date,
-                              '2 hours ago',
-                            ),
+                          Flexible(
+                            child: Text(
+                              valueOrDefault<String>(
+                                widget!.date,
+                                '2 hours ago',
+                              ),
                             style: FlutterFlowTheme.of(context)
                                 .labelSmall
                                 .override(
@@ -281,6 +282,7 @@ class _LostItemCardWidgetState extends State<LostItemCardWidget> {
                                   lineHeight: 1.2,
                                 ),
                           ),
+                          ),
                         ],
                       ),
                       Row(
@@ -299,31 +301,67 @@ class _LostItemCardWidgetState extends State<LostItemCardWidget> {
                               'Library Basement',
                             ),
                             maxLines: 1,
-                            style:
-                                FlutterFlowTheme.of(context).bodySmall.override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodySmall
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodySmall
-                                            .fontStyle,
-                                      ),
-                                      color: FlutterFlowTheme.of(context)
-                                          .secondaryText,
-                                      letterSpacing: 0.0,
+                            style: FlutterFlowTheme.of(context)
+                                .bodySmall
+                                .override(
+                                  font: GoogleFonts.inter(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodySmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodySmall
+                                        .fontStyle,
+                                  ),
+                                  color: FlutterFlowTheme.of(context)
+                                      .secondaryText,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodySmall
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodySmall
+                                      .fontStyle,
+                                  lineHeight: 1.4,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ].divide(SizedBox(width: 4)),
+                      ),
+                      // ── PHONE NUMBER ROW ──
+                      if (widget.phone.isNotEmpty)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.phone_rounded,
+                              color: FlutterFlowTheme.of(context).primary,
+                              size: 14,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              widget.phone,
+                              maxLines: 1,
+                              style: FlutterFlowTheme.of(context)
+                                  .bodySmall
+                                  .override(
+                                    font: GoogleFonts.inter(
                                       fontWeight: FlutterFlowTheme.of(context)
                                           .bodySmall
                                           .fontWeight,
                                       fontStyle: FlutterFlowTheme.of(context)
                                           .bodySmall
                                           .fontStyle,
-                                      lineHeight: 1.4,
                                     ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ].divide(SizedBox(width: 4)),
-                      ),
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryText,
+                                    letterSpacing: 0.0,
+                                    lineHeight: 1.4,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 8),
                         child: Container(
@@ -362,8 +400,6 @@ class _LostItemCardWidgetState extends State<LostItemCardWidget> {
                       Divider(
                         height: 16,
                         thickness: 1,
-                        indent: 0,
-                        endIndent: 0,
                         color: FlutterFlowTheme.of(context).alternate,
                       ),
                       Padding(

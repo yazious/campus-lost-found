@@ -38,7 +38,6 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
   }
 
@@ -91,19 +90,12 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                         .override(
                                           font: GoogleFonts.plusJakartaSans(
                                             fontWeight: FontWeight.bold,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .headlineMedium
-                                                    .fontStyle,
+                                            fontStyle: FlutterFlowTheme.of(context).headlineMedium.fontStyle,
                                           ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryText,
+                                          color: FlutterFlowTheme.of(context).primaryText,
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.bold,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .headlineMedium
-                                                  .fontStyle,
+                                          fontStyle: FlutterFlowTheme.of(context).headlineMedium.fontStyle,
                                           lineHeight: 1.25,
                                         ),
                                   ),
@@ -113,26 +105,13 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                         .bodySmall
                                         .override(
                                           font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodySmall
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodySmall
-                                                    .fontStyle,
+                                            fontWeight: FlutterFlowTheme.of(context).bodySmall.fontWeight,
+                                            fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
                                           ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
+                                          color: FlutterFlowTheme.of(context).secondaryText,
                                           letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodySmall
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodySmall
-                                                  .fontStyle,
+                                          fontWeight: FlutterFlowTheme.of(context).bodySmall.fontWeight,
+                                          fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
                                           lineHeight: 1.4,
                                         ),
                                   ),
@@ -153,8 +132,7 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                       records
                                           .map(
                                             (record) =>
-                                                TextSearchItem.fromTerms(
-                                                    record, [
+                                                TextSearchItem.fromTerms(record, [
                                               record.title!,
                                               record.description!,
                                               record.location!
@@ -163,8 +141,7 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                           .toList(),
                                     ).search('').map((r) => r.object).toList(),
                                   )
-                                  .onError((_, __) =>
-                                      _model.simpleSearchResults = [])
+                                  .onError((_, __) => _model.simpleSearchResults = [])
                                   .whenComplete(() => safeSetState(() {}));
                             },
                             child: wrapWithModel(
@@ -182,8 +159,7 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                 onSubmit: '',
                                 leadingIcon: Icon(
                                   Icons.search_rounded,
-                                  color:
-                                      FlutterFlowTheme.of(context).primaryText,
+                                  color: FlutterFlowTheme.of(context).primaryText,
                                   size: 16,
                                 ),
                                 leadingIconPresent: true,
@@ -218,18 +194,11 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                 child: StreamBuilder<List<ItemsRecord>>(
                   stream: queryItemsRecord(
                     queryBuilder: (itemsRecord) => itemsRecord
-                        .where(
-                          'type',
-                          isEqualTo: 'found',
-                        )
-                        .where(
-                          'status',
-                          isEqualTo: 'active',
-                        )
+                        .where('type', isEqualTo: 'found')
+                        .where('status', isEqualTo: 'active')
                         .orderBy('createdAt', descending: true),
                   ),
                   builder: (context, snapshot) {
-                    // Customize what your widget looks like when it's loading.
                     if (!snapshot.hasData) {
                       return Center(
                         child: SizedBox(
@@ -256,8 +225,7 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                           final columnItemsRecord =
                               columnItemsRecordList[columnIndex];
                           return Padding(
-                            padding:
-                                EdgeInsetsDirectional.fromSTEB(24, 0, 24, 0),
+                            padding: EdgeInsetsDirectional.fromSTEB(24, 0, 24, 0),
                             child: Container(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -271,22 +239,18 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                     ),
                                     updateCallback: () => safeSetState(() {}),
                                     child: FoundItemCardWidget(
-                                      key: Key(
-                                        'Key466_${columnItemsRecord.itemId}',
-                                      ),
-                                      category: columnItemsRecord.category
-                                              .isNotEmpty
+                                      key: Key('Key466_${columnItemsRecord.itemId}'),
+                                      category: columnItemsRecord.category.isNotEmpty
                                           ? columnItemsRecord.category
                                           : 'Other',
                                       date: columnItemsRecord.createdAt != null
-                                          ? dateTimeFormat(
-                                              'relative',
-                                              columnItemsRecord.createdAt!)
+                                          ? dateTimeFormat('relative', columnItemsRecord.createdAt!)
                                           : 'Recently',
                                       imgDesc:
                                           'https://dimg.dreamflow.cloud/v1/image/${Uri.encodeComponent(columnItemsRecord.title)}',
                                       location: columnItemsRecord.location,
                                       title: columnItemsRecord.title,
+                                      phone: columnItemsRecord.contactInfo, // ← ADDED
                                       itemRef: columnItemsRecord.reference,
                                     ),
                                   ),
@@ -339,49 +303,28 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                               hoverColor: Colors.transparent,
                               highlightColor: Colors.transparent,
                               onTap: () async {
-                                context.pushNamed(
-                                    DashboardScreenWidget.routeName);
+                                context.pushNamed(DashboardScreenWidget.routeName);
                               },
                               child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.home_rounded,
-                                  color: FlutterFlowTheme.of(context)
-                                      .secondaryText,
-                                  size: 24,
-                                ),
-                                Text(
-                                  'Home',
-                                  style: FlutterFlowTheme.of(context)
-                                      .labelSmall
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .labelSmall
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .labelSmall
-                                                  .fontStyle,
-                                        ),
-                                        color: FlutterFlowTheme.of(context)
-                                            .secondaryText,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .labelSmall
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .labelSmall
-                                            .fontStyle,
-                                        lineHeight: 1.2,
-                                      ),
-                                ),
-                              ].divide(SizedBox(height: 4)),
-                            ),
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.home_rounded,
+                                      color: FlutterFlowTheme.of(context).secondaryText,
+                                      size: 24),
+                                  Text('Home',
+                                      style: FlutterFlowTheme.of(context).labelSmall.override(
+                                            font: GoogleFonts.inter(
+                                              fontWeight: FlutterFlowTheme.of(context).labelSmall.fontWeight,
+                                              fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
+                                            ),
+                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                            letterSpacing: 0.0,
+                                            lineHeight: 1.2,
+                                          )),
+                                ].divide(SizedBox(height: 4)),
+                              ),
                             ),
                             InkWell(
                               splashColor: Colors.transparent,
@@ -389,49 +332,28 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                               hoverColor: Colors.transparent,
                               highlightColor: Colors.transparent,
                               onTap: () async {
-                                context.pushNamed(
-                                    LostItemsFeedWidget.routeName);
+                                context.pushNamed(LostItemsFeedWidget.routeName);
                               },
                               child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search_rounded,
-                                  color: FlutterFlowTheme.of(context)
-                                      .secondaryText,
-                                  size: 24,
-                                ),
-                                Text(
-                                  'Lost',
-                                  style: FlutterFlowTheme.of(context)
-                                      .labelSmall
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .labelSmall
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .labelSmall
-                                                  .fontStyle,
-                                        ),
-                                        color: FlutterFlowTheme.of(context)
-                                            .secondaryText,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .labelSmall
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .labelSmall
-                                            .fontStyle,
-                                        lineHeight: 1.2,
-                                      ),
-                                ),
-                              ].divide(SizedBox(height: 4)),
-                            ),
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.search_rounded,
+                                      color: FlutterFlowTheme.of(context).secondaryText,
+                                      size: 24),
+                                  Text('Lost',
+                                      style: FlutterFlowTheme.of(context).labelSmall.override(
+                                            font: GoogleFonts.inter(
+                                              fontWeight: FlutterFlowTheme.of(context).labelSmall.fontWeight,
+                                              fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
+                                            ),
+                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                            letterSpacing: 0.0,
+                                            lineHeight: 1.2,
+                                          )),
+                                ].divide(SizedBox(height: 4)),
+                              ),
                             ),
                             InkWell(
                               splashColor: Colors.transparent,
@@ -439,48 +361,28 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                               hoverColor: Colors.transparent,
                               highlightColor: Colors.transparent,
                               onTap: () async {
-                                context.pushNamed(
-                                    FoundItemsFeedWidget.routeName);
+                                context.pushNamed(FoundItemsFeedWidget.routeName);
                               },
                               child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.inventory_2_rounded,
-                                  color: FlutterFlowTheme.of(context).primary,
-                                  size: 24,
-                                ),
-                                Text(
-                                  'Found',
-                                  style: FlutterFlowTheme.of(context)
-                                      .labelSmall
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .labelSmall
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .labelSmall
-                                                  .fontStyle,
-                                        ),
-                                        color: FlutterFlowTheme.of(context)
-                                            .primary,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .labelSmall
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .labelSmall
-                                            .fontStyle,
-                                        lineHeight: 1.2,
-                                      ),
-                                ),
-                              ].divide(SizedBox(height: 4)),
-                            ),
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.inventory_2_rounded,
+                                      color: FlutterFlowTheme.of(context).primary,
+                                      size: 24),
+                                  Text('Found',
+                                      style: FlutterFlowTheme.of(context).labelSmall.override(
+                                            font: GoogleFonts.inter(
+                                              fontWeight: FlutterFlowTheme.of(context).labelSmall.fontWeight,
+                                              fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
+                                            ),
+                                            color: FlutterFlowTheme.of(context).primary,
+                                            letterSpacing: 0.0,
+                                            lineHeight: 1.2,
+                                          )),
+                                ].divide(SizedBox(height: 4)),
+                              ),
                             ),
                             InkWell(
                               splashColor: Colors.transparent,
@@ -491,28 +393,25 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                                 context.pushNamed(ReportItemWidget.routeName);
                               },
                               child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: FlutterFlowTheme.of(context).primary,
-                                    borderRadius: BorderRadius.circular(9999),
-                                    shape: BoxShape.rectangle,
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: FlutterFlowTheme.of(context).primary,
+                                      borderRadius: BorderRadius.circular(9999),
+                                      shape: BoxShape.rectangle,
+                                    ),
+                                    alignment: AlignmentDirectional(0, 0),
+                                    child: Icon(Icons.add_rounded,
+                                        color: FlutterFlowTheme.of(context).onPrimary,
+                                        size: 24),
                                   ),
-                                  alignment: AlignmentDirectional(0, 0),
-                                  child: Icon(
-                                    Icons.add_rounded,
-                                    color:
-                                        FlutterFlowTheme.of(context).onPrimary,
-                                    size: 24,
-                                  ),
-                                ),
-                              ].divide(SizedBox(height: 4)),
-                            ),
+                                ].divide(SizedBox(height: 4)),
+                              ),
                             ),
                             InkWell(
                               splashColor: Colors.transparent,
@@ -520,49 +419,28 @@ class _FoundItemsFeedWidgetState extends State<FoundItemsFeedWidget> {
                               hoverColor: Colors.transparent,
                               highlightColor: Colors.transparent,
                               onTap: () async {
-                                context.pushNamed(
-                                    ProfileMyPostsWidget.routeName);
+                                context.pushNamed(ProfileMyPostsWidget.routeName);
                               },
                               child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.person_outline_rounded,
-                                  color: FlutterFlowTheme.of(context)
-                                      .secondaryText,
-                                  size: 24,
-                                ),
-                                Text(
-                                  'Profile',
-                                  style: FlutterFlowTheme.of(context)
-                                      .labelSmall
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .labelSmall
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .labelSmall
-                                                  .fontStyle,
-                                        ),
-                                        color: FlutterFlowTheme.of(context)
-                                            .secondaryText,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .labelSmall
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .labelSmall
-                                            .fontStyle,
-                                        lineHeight: 1.2,
-                                      ),
-                                ),
-                              ].divide(SizedBox(height: 4)),
-                            ),
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.person_outline_rounded,
+                                      color: FlutterFlowTheme.of(context).secondaryText,
+                                      size: 24),
+                                  Text('Profile',
+                                      style: FlutterFlowTheme.of(context).labelSmall.override(
+                                            font: GoogleFonts.inter(
+                                              fontWeight: FlutterFlowTheme.of(context).labelSmall.fontWeight,
+                                              fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
+                                            ),
+                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                            letterSpacing: 0.0,
+                                            lineHeight: 1.2,
+                                          )),
+                                ].divide(SizedBox(height: 4)),
+                              ),
                             ),
                           ],
                         ),

@@ -10,7 +10,6 @@ import '/index.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -37,6 +36,9 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // FIXED: store contactInfo in state so it's accessible outside the StreamBuilder
+  String _contactInfo = '';
+
   @override
   void initState() {
     super.initState();
@@ -46,7 +48,6 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
   }
 
@@ -60,43 +61,39 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
       child: Scaffold(
         key: scaffoldKey,
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-        body: widget.itemRef == null
-            ? Center(
-                child: Text(
-                  'Item not found',
-                  style: FlutterFlowTheme.of(context).bodyLarge,
-                ),
-              )
-            : StreamBuilder<ItemsRecord>(
-                stream: ItemsRecord.getDocument(widget.itemRef!),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Center(
-                      child: SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            FlutterFlowTheme.of(context).primary,
-                          ),
+        body: Stack(
+          alignment: AlignmentDirectional(-1, -1),
+          children: [
+            StreamBuilder<ItemsRecord>(
+              stream: ItemsRecord.getDocument(widget!.itemRef!),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(
+                    child: SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          FlutterFlowTheme.of(context).primary,
                         ),
                       ),
-                    );
+                    ),
+                  );
+                }
+
+                final columnItemsRecord = snapshot.data!;
+
+                // FIXED: update _contactInfo whenever stream emits new data
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted &&
+                      _contactInfo != columnItemsRecord.contactInfo) {
+                    setState(() {
+                      _contactInfo = columnItemsRecord.contactInfo;
+                    });
                   }
+                });
 
-                  final columnItemsRecord = snapshot.data!;
-                  final imageUrl =
-                      'https://dimg.dreamflow.cloud/v1/image/${Uri.encodeComponent(columnItemsRecord.title)}';
-                  final statusLabel = columnItemsRecord.status.isNotEmpty
-                      ? columnItemsRecord.status.toUpperCase()
-                      : (columnItemsRecord.type == 'found'
-                          ? 'FOUND'
-                          : 'STILL LOST');
-
-                  return Stack(
-                    alignment: AlignmentDirectional(-1, -1),
-                    children: [
-                      SingleChildScrollView(
+                return SingleChildScrollView(
                   primary: false,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -117,10 +114,12 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                   alignment: AlignmentDirectional(-1, -1),
                                   children: [
                                     CachedNetworkImage(
-                                      fadeInDuration: Duration(milliseconds: 0),
+                                      fadeInDuration:
+                                          Duration(milliseconds: 0),
                                       fadeOutDuration:
                                           Duration(milliseconds: 0),
-                                      imageUrl: imageUrl,
+                                      imageUrl:
+                                          'https://dimg.dreamflow.cloud/v1/image/lost%20black%20leather%20wallet%20with%20university%20ID%20card',
                                       height: 340,
                                       fit: BoxFit.cover,
                                       alignment: Alignment(0, 0),
@@ -143,53 +142,44 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                     ),
                                     Align(
                                       alignment: AlignmentDirectional(-1, -1),
-                                      child: Container(
-                                        child: Padding(
-                                          padding: EdgeInsets.all(24),
-                                          child: Container(
-                                            child: FlutterFlowIconButton(
-                                              borderRadius: 9999,
-                                              buttonSize: 40,
-                                              fillColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .surface80,
-                                              icon: Icon(
-                                                Icons.arrow_back_rounded,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primaryText,
-                                                size: 24,
-                                              ),
-                                              onPressed: () async {
-                                                context.goNamed(
-                                                    DashboardScreenWidget
-                                                        .routeName);
-                                              },
-                                            ),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(24),
+                                        child: FlutterFlowIconButton(
+                                          borderRadius: 9999,
+                                          buttonSize: 40,
+                                          fillColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .surface80,
+                                          icon: Icon(
+                                            Icons.arrow_back_rounded,
+                                            color: FlutterFlowTheme.of(context)
+                                                .primaryText,
+                                            size: 24,
                                           ),
+                                          onPressed: () async {
+                                            context.goNamed(
+                                                DashboardScreenWidget
+                                                    .routeName);
+                                          },
                                         ),
                                       ),
                                     ),
                                     Align(
                                       alignment: AlignmentDirectional(1, -1),
-                                      child: Container(
-                                        child: Padding(
-                                          padding: EdgeInsets.all(24),
-                                          child: Container(
-                                            child: wrapWithModel(
-                                              model: _model.infoTagModel,
-                                              updateCallback: () =>
-                                                  safeSetState(() {}),
-                                              child: InfoTagWidget(
-                                                bg: Color(0x00000000),
-                                                color: Color(0x00000000),
-                                                icon: Icon(
-                                                  Icons.history_rounded,
-                                                  size: 14,
-                                                ),
-                                                label: statusLabel,
-                                              ),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(24),
+                                        child: wrapWithModel(
+                                          model: _model.infoTagModel,
+                                          updateCallback: () =>
+                                              safeSetState(() {}),
+                                          child: InfoTagWidget(
+                                            bg: Color(0x00000000),
+                                            color: Color(0x00000000),
+                                            icon: Icon(
+                                              Icons.history_rounded,
+                                              size: 14,
                                             ),
+                                            label: 'STILL LOST',
                                           ),
                                         ),
                                       ),
@@ -202,7 +192,8 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.center,
                                   children: [
                                     Column(
                                       mainAxisSize: MainAxisSize.min,
@@ -218,8 +209,11 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
                                           children: [
-                                            Text(
+                                            Expanded(
+                                            child: Text(
                                               columnItemsRecord.title,
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 2,
                                               style: FlutterFlowTheme.of(
                                                       context)
                                                   .headlineMedium
@@ -234,11 +228,13 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                                               .headlineMedium
                                                               .fontStyle,
                                                     ),
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primaryText,
+                                                    color:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .primaryText,
                                                     letterSpacing: 0.0,
-                                                    fontWeight: FontWeight.bold,
+                                                    fontWeight:
+                                                        FontWeight.bold,
                                                     fontStyle:
                                                         FlutterFlowTheme.of(
                                                                 context)
@@ -247,6 +243,7 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                                     lineHeight: 1.25,
                                                   ),
                                             ),
+                                            ),
                                             FlutterFlowIconButton(
                                               borderRadius: 8,
                                               buttonSize: 40,
@@ -254,34 +251,20 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                               icon: Icon(
                                                 Icons.share_rounded,
                                                 color:
-                                                    FlutterFlowTheme.of(context)
+                                                    FlutterFlowTheme.of(
+                                                            context)
                                                         .secondaryText,
                                                 size: 24,
                                               ),
-                                              onPressed: () async {
-                                                final shareText =
-                                                    '${columnItemsRecord.title}\n'
-                                                    '${columnItemsRecord.description}\n'
-                                                    'Location: ${columnItemsRecord.location}';
-                                                await Clipboard.setData(
-                                                    ClipboardData(
-                                                        text: shareText));
-                                                if (!context.mounted) return;
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                        'Item details copied'),
-                                                  ),
-                                                );
+                                              onPressed: () {
+                                                print(
+                                                    'Share button pressed ...');
                                               },
                                             ),
                                           ],
                                         ),
                                         Text(
-                                          columnItemsRecord.category.isNotEmpty
-                                              ? columnItemsRecord.category
-                                              : columnItemsRecord.type,
+                                          'Personal Belongings • ID Cards',
                                           style: FlutterFlowTheme.of(context)
                                               .bodyMedium
                                               .override(
@@ -297,16 +280,18 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                                           .bodyMedium
                                                           .fontStyle,
                                                 ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primary,
+                                                color: FlutterFlowTheme.of(
+                                                        context)
+                                                    .primary,
                                                 letterSpacing: 0.0,
                                                 fontWeight:
-                                                    FlutterFlowTheme.of(context)
+                                                    FlutterFlowTheme.of(
+                                                            context)
                                                         .bodyMedium
                                                         .fontWeight,
                                                 fontStyle:
-                                                    FlutterFlowTheme.of(context)
+                                                    FlutterFlowTheme.of(
+                                                            context)
                                                         .bodyMedium
                                                         .fontStyle,
                                                 lineHeight: 1.5,
@@ -317,8 +302,6 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                     Divider(
                                       height: 16,
                                       thickness: 1,
-                                      indent: 0,
-                                      endIndent: 0,
                                       color: FlutterFlowTheme.of(context)
                                           .alternate,
                                     ),
@@ -334,8 +317,8 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                           style: FlutterFlowTheme.of(context)
                                               .titleMedium
                                               .override(
-                                                font:
-                                                    GoogleFonts.plusJakartaSans(
+                                                font: GoogleFonts
+                                                    .plusJakartaSans(
                                                   fontWeight: FontWeight.bold,
                                                   fontStyle:
                                                       FlutterFlowTheme.of(
@@ -346,10 +329,47 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                                 letterSpacing: 0.0,
                                                 fontWeight: FontWeight.bold,
                                                 fontStyle:
-                                                    FlutterFlowTheme.of(context)
+                                                    FlutterFlowTheme.of(
+                                                            context)
                                                         .titleMedium
                                                         .fontStyle,
                                                 lineHeight: 1.4,
+                                              ),
+                                        ),
+                                        Text(
+                                          columnItemsRecord.description.isNotEmpty
+                                                  ? columnItemsRecord.description
+                                                  : 'No additional details provided.',
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                font: GoogleFonts.inter(
+                                                  fontWeight:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMedium
+                                                          .fontWeight,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMedium
+                                                          .fontStyle,
+                                                ),
+                                                color: FlutterFlowTheme.of(
+                                                        context)
+                                                    .secondaryText,
+                                                letterSpacing: 0.0,
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMedium
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMedium
+                                                        .fontStyle,
+                                                lineHeight: 1.5,
                                               ),
                                         ),
                                       ].divide(SizedBox(height: 8)),
@@ -357,26 +377,27 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                     Container(
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        shape: BoxShape.rectangle,
+                                        borderRadius:
+                                            BorderRadius.circular(12),
                                         border: Border.all(
                                           color: Color(0xFFB5B5B5),
                                         ),
                                       ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Row(
-                                            mainAxisSize: MainAxisSize.max,
-                                            children: [
-                                              Icon(
-                                                Icons.add_location_alt_rounded,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primaryText,
-                                                size: 24,
-                                              ),
-                                              Text(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.max,
+                                          children: [
+                                            Icon(
+                                              Icons.add_location_alt_rounded,
+                                              color: FlutterFlowTheme.of(
+                                                      context)
+                                                  .primaryText,
+                                              size: 24,
+                                            ),
+                                            SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
                                                 columnItemsRecord.location,
                                                 style:
                                                     FlutterFlowTheme.of(context)
@@ -396,125 +417,40 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                                                     .fontStyle,
                                                           ),
                                                           letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
                                                         ),
                                               ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Align(
-                                      alignment: AlignmentDirectional(-1, -1),
-                                      child: Container(
-                                        decoration: BoxDecoration(),
-                                        child: Container(
-                                          decoration: BoxDecoration(),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(
-                                                color: Color(0xFFC7C7C7),
-                                              ),
                                             ),
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.only(
-                                                  topLeft: Radius.circular(12),
-                                                ),
-                                                border: Border.all(
-                                                  color: Color(0xFFD7D6D6),
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.max,
-                                                children: [
-                                                  Icon(
-                                                    Icons.calendar_today,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primaryText,
-                                                    size: 24,
-                                                  ),
-                                                  Text(
-                                                    columnItemsRecord
-                                                                .createdAt !=
-                                                            null
-                                                        ? '${columnItemsRecord.createdAt!.day}/${columnItemsRecord.createdAt!.month}/${columnItemsRecord.createdAt!.year}'
-                                                        : 'Date',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                    Align(
-                                      alignment: AlignmentDirectional(-1, -1),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(12),
-                                          ),
-                                          border: Border.all(
-                                            color: Color(0xFFC5C5C5),
-                                          ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Color(0xFFD7D6D6),
                                         ),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(12),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.max,
                                           children: [
                                             Icon(
-                                              Icons.phone,
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryText,
+                                              Icons.calendar_today,
+                                              color: FlutterFlowTheme.of(
+                                                      context)
+                                                  .primaryText,
                                               size: 24,
                                             ),
+                                            SizedBox(width: 8),
                                             Text(
                                               valueOrDefault<String>(
-                                                columnItemsRecord.contactInfo,
-                                                'contact',
+                                                columnItemsRecord.createdAt
+                                                    ?.toString(),
+                                                'Date',
                                               ),
                                               style:
                                                   FlutterFlowTheme.of(context)
@@ -533,48 +469,76 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                                                                   .fontStyle,
                                                         ),
                                                         letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
                                                       ),
                                             ),
                                           ],
                                         ),
                                       ),
                                     ),
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        ClipRRect(
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Color(0xFFC5C5C5),
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.max,
+                                          children: [
+                                            Icon(
+                                              Icons.phone,
+                                              color: FlutterFlowTheme.of(
+                                                      context)
+                                                  .primaryText,
+                                              size: 24,
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              valueOrDefault<String>(
+                                                columnItemsRecord.contactInfo,
+                                                'No contact info',
+                                              ),
+                                              style:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        font: GoogleFonts.inter(
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
+                                                        letterSpacing: 0.0,
+                                                      ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Container(
+                                        height: 180,
+                                        decoration: BoxDecoration(
                                           borderRadius:
                                               BorderRadius.circular(16),
-                                          child: Container(
-                                            height: 180,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                              shape: BoxShape.rectangle,
-                                              border: Border.all(
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .alternate,
-                                                width: 1,
-                                              ),
-                                            ),
+                                          border: Border.all(
+                                            color: FlutterFlowTheme.of(context)
+                                                .alternate,
+                                            width: 1,
                                           ),
                                         ),
-                                      ].divide(SizedBox(height: 8)),
+                                      ),
                                     ),
                                   ].divide(SizedBox(height: 24)),
                                 ),
@@ -585,128 +549,117 @@ class _ItemDetailWidgetState extends State<ItemDetailWidget> {
                       ),
                     ],
                   ),
+                );
+              },
+            ),
+
+            // FIXED: bottom buttons now use _contactInfo (state variable)
+            // instead of columnItemsRecord which is out of scope here
+            Align(
+              alignment: AlignmentDirectional(0, 1),
+              child: Container(
+                height: 88,
+                decoration: BoxDecoration(
+                  color:
+                      FlutterFlowTheme.of(context).secondaryBackground,
+                  shape: BoxShape.rectangle,
                 ),
-                      Align(
-                        alignment: AlignmentDirectional(0, 1),
-                        child: Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                            shape: BoxShape.rectangle,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Container(
-                                height: 1,
-                                decoration: BoxDecoration(
-                                  color: FlutterFlowTheme.of(context).alternate,
-                                  shape: BoxShape.rectangle,
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.all(24),
-                                child: Container(
-                                  height: 51,
-                                  alignment: AlignmentDirectional(0, 0),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: InkWell(
-                                          splashColor: Colors.transparent,
-                                          focusColor: Colors.transparent,
-                                          hoverColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          onTap: () async {
-                                            final contact =
-                                                columnItemsRecord.contactInfo;
-                                            if (contact.isNotEmpty) {
-                                              await launchURL('tel:$contact');
-                                            }
-                                          },
-                                          child: wrapWithModel(
-                                            model: _model.buttonModel1,
-                                            updateCallback: () =>
-                                                safeSetState(() {}),
-                                            child: ButtonWidget(
-                                              content: 'Call Owner',
-                                              icon: Icon(
-                                                Icons.call_rounded,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primaryText,
-                                                size: 16,
-                                              ),
-                                              iconPresent: true,
-                                              iconEndPresent: false,
-                                              variant: 'outline',
-                                              size: 'large',
-                                              fullWidth: false,
-                                              loading: false,
-                                              disabled: false,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: InkWell(
-                                          splashColor: Colors.transparent,
-                                          focusColor: Colors.transparent,
-                                          hoverColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          onTap: () async {
-                                            final contact =
-                                                columnItemsRecord.contactInfo;
-                                            if (contact.isNotEmpty) {
-                                              await launchURL(
-                                                  'https://wa.me/$contact');
-                                            }
-                                          },
-                                          child: wrapWithModel(
-                                            model: _model.buttonModel2,
-                                            updateCallback: () =>
-                                                safeSetState(() {}),
-                                            child: ButtonWidget(
-                                              content: 'Send Message',
-                                              icon: Icon(
-                                                Icons
-                                                    .chat_bubble_outline_rounded,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .onPrimary,
-                                                size: 16,
-                                              ),
-                                              iconPresent: true,
-                                              iconEndPresent: false,
-                                              variant: 'primary',
-                                              size: 'large',
-                                              fullWidth: false,
-                                              loading: false,
-                                              disabled: false,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ].divide(SizedBox(width: 16)),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      height: 1,
+                      decoration: BoxDecoration(
+                        color: FlutterFlowTheme.of(context).alternate,
+                      ),
+                    ),
+                    Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
+                      child: SizedBox(
+                        height: 56,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  // FIXED: uses _contactInfo state variable
+                                  if (_contactInfo.isNotEmpty) {
+                                    await launchURL('tel:$_contactInfo');
+                                  }
+                                },
+                                child: wrapWithModel(
+                                  model: _model.buttonModel1,
+                                  updateCallback: () => safeSetState(() {}),
+                                  child: ButtonWidget(
+                                    content: 'Call Owner',
+                                    icon: Icon(
+                                      Icons.call_rounded,
+                                      color: FlutterFlowTheme.of(context)
+                                          .primaryText,
+                                      size: 16,
+                                    ),
+                                    iconPresent: true,
+                                    iconEndPresent: false,
+                                    variant: 'outline',
+                                    size: 'large',
+                                    fullWidth: false,
+                                    loading: false,
+                                    disabled: false,
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            Expanded(
+                              child: InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  // FIXED: uses _contactInfo state variable
+                                  if (_contactInfo.isNotEmpty) {
+                                    await launchURL(
+                                        'https://wa.me/$_contactInfo');
+                                  }
+                                },
+                                child: wrapWithModel(
+                                  model: _model.buttonModel2,
+                                  updateCallback: () => safeSetState(() {}),
+                                  child: ButtonWidget(
+                                    content: 'Send Message',
+                                    icon: Icon(
+                                      Icons.chat_bubble_outline_rounded,
+                                      color:
+                                          FlutterFlowTheme.of(context).onPrimary,
+                                      size: 16,
+                                    ),
+                                    iconPresent: true,
+                                    iconEndPresent: false,
+                                    variant: 'primary',
+                                    size: 'large',
+                                    fullWidth: false,
+                                    loading: false,
+                                    disabled: false,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ].divide(SizedBox(width: 16)),
                         ),
                       ),
-                    ],
-                  );
-                },
+                    ),
+                  ],
+                ),
               ),
+            ),
+          ],
+        ),
       ),
     );
   }

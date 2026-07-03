@@ -113,14 +113,17 @@ abstract class FlutterFlowTheme {
   TextStyle get titleLarge => GoogleFonts.plusJakartaSans(
         fontSize: 22,
         fontWeight: FontWeight.w600,
+        color: const Color(0xFF0F172A),
       );
   TextStyle get titleMedium => GoogleFonts.plusJakartaSans(
         fontSize: 18,
         fontWeight: FontWeight.w500,
+        color: const Color(0xFF0F172A),
       );
   TextStyle get titleSmall => GoogleFonts.plusJakartaSans(
         fontSize: 16,
         fontWeight: FontWeight.w500,
+        color: const Color(0xFF0F172A),
       );
   TextStyle get labelLarge => GoogleFonts.inter(
         fontSize: 14,

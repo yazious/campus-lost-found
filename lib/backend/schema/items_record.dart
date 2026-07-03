@@ -18,12 +18,12 @@ class ItemsRecord {
   String get category => _data['category'] as String? ?? '';
   String get description => _data['description'] as String? ?? '';
   String get location => _data['location'] as String? ?? '';
-  DateTime? get date => _data['date'] as DateTime?;
+  DateTime? get date => (_data['date'] as Timestamp?)?.toDate();
   String get postedBy => _data['postedBy'] as String? ?? '';
   String get postedByName => _data['postedByName'] as String? ?? '';
   String get contactInfo => _data['contactInfo'] as String? ?? '';
   String get status => _data['status'] as String? ?? '';
-  DateTime? get createdAt => _data['createdAt'] as DateTime?;
+  DateTime? get createdAt => (_data['createdAt'] as Timestamp?)?.toDate();
 
   static CollectionReference get collection =>
       FirebaseFirestore.instance.collection('items');

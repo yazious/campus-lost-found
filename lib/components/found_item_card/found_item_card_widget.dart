@@ -20,19 +20,22 @@ class FoundItemCardWidget extends StatefulWidget {
     String? imgDesc,
     String? location,
     String? title,
+    String? phone,
     required this.itemRef,
   })  : this.category = category ?? 'Electronics',
         this.date = date ?? '2 hours ago',
         this.imgDesc = imgDesc ??
             'https://dimg.dreamflow.cloud/v1/image/silver%20apple%20watch%20on%20wooden%20table',
         this.location = location ?? 'Main Library, 2nd Floor',
-        this.title = title ?? 'Silver Apple Watch';
+        this.title = title ?? 'Silver Apple Watch',
+        this.phone = phone ?? '';
 
   final String category;
   final String date;
   final String imgDesc;
   final String location;
   final String title;
+  final String phone;
   final DocumentReference? itemRef;
 
   @override
@@ -52,14 +55,11 @@ class _FoundItemCardWidgetState extends State<FoundItemCardWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => FoundItemCardModel());
-
-    // Navigation handled by InkWell onTap below.
   }
 
   @override
   void dispose() {
     _model.maybeDispose();
-
     super.dispose();
   }
 
@@ -239,7 +239,8 @@ class _FoundItemCardWidgetState extends State<FoundItemCardWidget> {
                           children: [
                             Icon(
                               Icons.location_on_rounded,
-                              color: FlutterFlowTheme.of(context).secondaryText,
+                              color:
+                                  FlutterFlowTheme.of(context).secondaryText,
                               size: 14,
                             ),
                             Expanded(
@@ -316,6 +317,41 @@ class _FoundItemCardWidgetState extends State<FoundItemCardWidget> {
                             ),
                           ].divide(SizedBox(width: 4)),
                         ),
+                        // ── PHONE NUMBER ROW ──
+                        if (widget.phone.isNotEmpty)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.phone_rounded,
+                                color: FlutterFlowTheme.of(context).primary,
+                                size: 14,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                widget.phone,
+                                maxLines: 1,
+                                style: FlutterFlowTheme.of(context)
+                                    .bodySmall
+                                    .override(
+                                      font: GoogleFonts.inter(
+                                        fontWeight: FlutterFlowTheme.of(context)
+                                            .bodySmall
+                                            .fontWeight,
+                                        fontStyle: FlutterFlowTheme.of(context)
+                                            .bodySmall
+                                            .fontStyle,
+                                      ),
+                                      color: FlutterFlowTheme.of(context)
+                                          .secondaryText,
+                                      letterSpacing: 0.0,
+                                      lineHeight: 1.4,
+                                    ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                       ].divide(SizedBox(height: 8)),
                     ),
                   ),
